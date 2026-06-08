@@ -235,6 +235,16 @@ def run_update() -> dict:
             STATE["updating"] = False
 
 
+def start_update_thread() -> dict:
+    with STATE_LOCK:
+        if STATE["updating"]:
+            return {"ok": False, "message": "更新正在进行中，请稍后刷新。"}
+
+    thread = threading.Thread(target=run_update, daemon=True)
+    thread.start()
+    return {"ok": True, "message": "已开始更新，请稍候。"}
+
+
 HTML = r"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -332,7 +342,15 @@ HTML = r"""<!doctype html>
       statusEl.textContent = "更新中，通常需要几十秒...";
       const res = await fetch("/api/update", { method: "POST" });
       render(await res.json());
-      btn.disabled = false;
+      const timer = setInterval(async () => {
+        const res = await fetch("/api/ranking");
+        const data = await res.json();
+        render(data);
+        if (!data.updating) {
+          clearInterval(timer);
+          btn.disabled = false;
+        }
+      }, 2500);
     }
 
     btn.addEventListener("click", updateRanking);
@@ -383,7 +401,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         if self.path == "/api/update":
-            result = run_update()
+            result = start_update_thread()
             with STATE_LOCK:
                 payload = dict(STATE)
             payload.update(result)
