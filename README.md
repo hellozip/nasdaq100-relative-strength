@@ -1,5 +1,7 @@
 # 纳斯达克100相对强弱排名网页
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/hellozip/nasdaq100-relative-strength)
+
 这是一个可部署的 Python 网页应用，用 Yahoo Finance 免费接口读取纳斯达克100成分股和价格数据，并按以下规则排序：
 
 1. 最新价格高于 MA5 得 1 分。
